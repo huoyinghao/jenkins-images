@@ -1,0 +1,8 @@
+bak
+tmp
+cwp-cli.jar
+jcli
+phantomjs
+jenkins.war
+*.tar.gz
+.idea
