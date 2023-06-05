@@ -1,4 +1,4 @@
-FROM release-ci.daocloud.io/amamba/ubuntu:22.04 as build
+FROM release.daocloud.io/amamba/ubuntu:22.04 as build
 RUN sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list
 RUN sed -i s@/security.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list
 RUN apt-get update -y && apt-get --no-install-recommends install wget default-jre ca-certificates maven bzip2 -y
@@ -12,7 +12,7 @@ COPY remove-bundle-plugins.groovy /
 WORKDIR /
 RUN jcli cwp --install-artifacts --config-path formula.yaml
 
-FROM release-ci.daocloud.io/amamba/jenkins-base:2.346.2
+FROM release.daocloud.io/amamba/jenkins-base:2.346.2
 COPY --from=build /tmp/output/target/daocloud-jenkins-1.0-SNAPSHOT.war /usr/share/jenkins/jenkins.war
 ENV JAVA_OPTS -Djenkins.install.runSetupWizard=false
 ENTRYPOINT ["tini", "--", "/usr/local/bin/jenkins.sh"]
