@@ -4,4 +4,4 @@ WORKDIR /binaryfile
 
 COPY . .
 
-RUN chmod +x ./hack/install.sh && ./hack/install.sh
+RUN chmod +x ./hack/install.sh && sh ./hack/install.sh
