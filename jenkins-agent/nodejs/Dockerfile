@@ -1,6 +1,6 @@
 ARG RUNTIME
 ARG REGISTRY_REPO
-FROM $REGISTRY_REPO/amamba/jenkins-agent/builder-base:latest$RUNTIME
+FROM $REGISTRY_REPO/jenkins-agent-base:latest$RUNTIME
 COPY ./ ./
 ARG VERSION
 ENV NODEVERSION $VERSION

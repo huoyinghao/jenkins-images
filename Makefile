@@ -9,35 +9,38 @@ ifeq ($(VERSION), "")
 endif
 
 JENKINS_VERSION="2.346.2"
-REGISTRY_REPO?="release.daocloud.io"
+# REGISTRY_REPO?="release.daocloud.io"
+REGISTRY_REPO?="huoyinghao"
 REGISTRY_CI_REPO?="release-ci.daocloud.io"
 TAG=$(VERSION)-$(JENKINS_VERSION)
 BUILD_ARCH?="linux/amd64,linux/arm64"
 AMAMBA_IMAGE_VERSION=$(VERSION)
 
 .PHONY: build-jenkins-all
-build-jenkins-all: build-amd64 build-arm64 build-manifest #这个过程不能设为并发,一定要保证build-amd64执行成功之后再执行build-arm64 所以在make的时候不要指定-j 参数
+build-jenkins-all: docker-login build-amd64 build-arm64 #这个过程不能设为并发,一定要保证build-amd64执行成功之后再执行build-arm64 所以在make的时候不要指定-j 参数
 
 .PHONY: build-amd64
-build-amd64: docker-login
+build-amd64:
 	export DOCKER_CLI_EXPERIMENTAL=enabled ;\
     ! ( docker buildx ls | grep amamba-jenkins-amd64-multi-platform-builder ) && docker buildx create --use --platform=linux/amd64 --name amamba-jenkins-amd64-multi-platform-builder ;\
 	docker buildx build \
     	   --builder amamba-jenkins-amd64-multi-platform-builder \
     	   --platform linux/amd64 \
-    	   --tag $(REGISTRY_REPO)/jenkinns-agent/jenkins:$(TAG)-amd64  \
+    	   --tag $(REGISTRY_REPO)/jenkins:$(TAG)-amd64  \
+    	   --tag $(REGISTRY_REPO)/jenkins:latest-amd64  \
     	   -f Dockerfile \
     	   --push \
     	   .
 
 .PHONY: build-arm64
-build-arm64: docker-login
+build-arm64:
 	export DOCKER_CLI_EXPERIMENTAL=enabled ;\
     ! ( docker buildx ls | grep amamba-jenkins-arm64-multi-platform-builder ) && docker buildx create --use --platform=linux/arm64 --name amamba-jenkins-arm64-multi-platform-builder ;\
 	docker buildx build \
     	   --builder amamba-jenkins-arm64-multi-platform-builder \
     	   --platform linux/arm64 \
-    	   --tag $(REGISTRY_REPO)/jenkinns-agent/jenkins:$(TAG)-arm64  \
+    	   --tag $(REGISTRY_REPO)/jenkins:$(TAG)-arm64  \
+    	   --tag $(REGISTRY_REPO)/jenkins:latest-arm64  \
     	   --build-arg REGISTRY_REPO=$(REGISTRY_REPO) \
     	   -f ./build/Dockerfile \
     	   --build-arg TAG=$(TAG) \
@@ -46,39 +49,40 @@ build-arm64: docker-login
 
 .PHONY: build-manifest
 build-manifest:
-	docker manifest create $(REGISTRY_REPO)/jenkins-agent/jenkins:$(TAG) $(REGISTRY_REPO)/jenkins-agent/jenkins:$(TAG)-amd64 $(REGISTRY_REPO)/jenkins-agent/jenkins:$(TAG)-arm64
-	docker manifest push $(REGISTRY_REPO)/jenkins-agent/jenkins:$(TAG)
+	docker manifest create $(REGISTRY_REPO)/jenkins:$(TAG) $(REGISTRY_REPO)/jenkins:$(TAG)-amd64 $(REGISTRY_REPO)/jenkins:$(TAG)-arm64
+	docker manifest push $(REGISTRY_REPO)/jenkins:$(TAG)
 
 .PHONY: docker-login
 docker-login:
 	@echo "push images to $(REGISTRY_REPO)"
-	docker login ${REGISTRY_REPO} -u ${REGISTRY_USERNAME} -p ${REGISTRY_PASSWORD}
+	#docker login ${REGISTRY_REPO} -u ${REGISTRY_USERNAME} -p ${REGISTRY_PASSWORD}
+	docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
 
 .PHONY: build-jenkins-agent-base-all
 build-jenkins-agent-base-all: build-jenkins-agent-base build-jenkins-agent-base-podman
 
 .PHONY: build-jenkins-agent-base
-build-jenkins-agent-base: docker-login
+build-jenkins-agent-base:
 	export DOCKER_CLI_EXPERIMENTAL=enabled ;\
 	! ( docker buildx ls | grep amamba-jenkins-agent-base-multi-platform-builder ) && docker buildx create --use --platform=$(BUILD_ARCH) --name amamba-jenkins-agent-base-multi-platform-builder ;\
 	docker buildx build \
 			--builder amamba-jenkins-agent-base-multi-platform-builder \
 			--platform $(BUILD_ARCH) \
-			--tag $(REGISTRY_REPO)/jenkins-agent/builder-base:$(AMAMBA_IMAGE_VERSION)  \
-			--tag $(REGISTRY_REPO)/jenkins-agent/builder-base:latest  \
+			--tag $(REGISTRY_REPO)/jenkins-agent-base:$(AMAMBA_IMAGE_VERSION)  \
+			--tag $(REGISTRY_REPO)/jenkins-agent-base:latest  \
 			-f ./jenkins-agent/base/Dockerfile \
 			--push \
 			./jenkins-agent/base
 
 .PHONY: build-jenkins-agent-base-podman
-build-jenkins-agent-base-podman: docker-login
+build-jenkins-agent-base-podman:
 	export DOCKER_CLI_EXPERIMENTAL=enabled ;\
 	! ( docker buildx ls | grep amamba-jenkins-agent-base-podman-multi-platform-builder ) && docker buildx create --use --platform=$(BUILD_ARCH) --name amamba-jenkins-agent-base-podman-multi-platform-builder ;\
 	docker buildx build \
 			--builder amamba-jenkins-agent-base-podman-multi-platform-builder \
 			--platform $(BUILD_ARCH) \
-			--tag $(REGISTRY_REPO)/jenkins-agent/builder-base:$(AMAMBA_IMAGE_VERSION)-podman  \
-			--tag $(REGISTRY_REPO)/jenkins-agent/builder-base:latest-podman  \
+			--tag $(REGISTRY_REPO)/jenkins-agent-base:$(AMAMBA_IMAGE_VERSION)-podman  \
+			--tag $(REGISTRY_REPO)/jenkins-agent-base:latest-podman  \
 			-f ./jenkins-agent/base/podman/Dockerfile \
 			--build-arg REGISTRY_REPO="$(REGISTRY_REPO)" \
 			--push \
@@ -88,28 +92,28 @@ build-jenkins-agent-base-podman: docker-login
 build-jenkins-agent-go-all: build-jenkins-agent-go build-jenkins-agent-go-podman
 
 .PHONY: build-jenkins-agent-go
-build-jenkins-agent-go: docker-login
+build-jenkins-agent-go:
 	export DOCKER_CLI_EXPERIMENTAL=enabled ;\
 	! ( docker buildx ls | grep amamba-jenkins-agent-go-multi-platform-builder ) && docker buildx create --use --platform=$(BUILD_ARCH) --name amamba-jenkins-agent-go-multi-platform-builder ;\
 	docker buildx build \
 			--builder amamba-jenkins-agent-go-multi-platform-builder \
 			--platform $(BUILD_ARCH) \
-			--tag $(REGISTRY_REPO)/jenkins-agent/builder-go:$(AMAMBA_IMAGE_VERSION)  \
-			--tag $(REGISTRY_REPO)/jenkins-agent/builder-go:latest   \
+			--tag $(REGISTRY_REPO)/jenkins-agent-go:$(AMAMBA_IMAGE_VERSION)  \
+			--tag $(REGISTRY_REPO)/jenkins-agent-go:latest   \
 			-f ./jenkins-agent/go/Dockerfile \
 			--build-arg REGISTRY_REPO="$(REGISTRY_REPO)" \
 			--push \
 			./jenkins-agent/go
 
 .PHONY: build-jenkins-agent-go-podman
-build-jenkins-agent-go-podman: docker-login
+build-jenkins-agent-go-podman:
 	export DOCKER_CLI_EXPERIMENTAL=enabled ;\
 	! ( docker buildx ls | grep amamba-jenkins-agent-go-podman-multi-platform-builder ) && docker buildx create --use --platform=$(BUILD_ARCH) --name amamba-jenkins-agent-go-podman-multi-platform-builder ;\
 	docker buildx build \
 			--builder amamba-jenkins-agent-go-podman-multi-platform-builder \
 			--platform $(BUILD_ARCH) \
-			--tag $(REGISTRY_REPO)/jenkins-agent/builder-go:$(AMAMBA_IMAGE_VERSION)-podman  \
-			--tag $(REGISTRY_REPO)/jenkins-agent/builder-go:latest-podman   \
+			--tag $(REGISTRY_REPO)/jenkins-agent-go:$(AMAMBA_IMAGE_VERSION)-podman  \
+			--tag $(REGISTRY_REPO)/jenkins-agent-go:latest-podman   \
 			-f ./jenkins-agent/go/Dockerfile \
 			--build-arg RUNTIME="-podman" \
 			--build-arg REGISTRY_REPO="$(REGISTRY_REPO)" \
@@ -120,28 +124,28 @@ build-jenkins-agent-go-podman: docker-login
 build-jenkins-agent-maven-all: build-jenkins-agent-maven build-jenkins-agent-maven-podman
 
 .PHONY: build-jenkins-agent-maven
-build-jenkins-agent-maven: docker-login
+build-jenkins-agent-maven:
 	export DOCKER_CLI_EXPERIMENTAL=enabled ;\
 	! ( docker buildx ls | grep amamba-jenkins-agent-maven-multi-platform-builder ) && docker buildx create --use --platform=$(BUILD_ARCH) --name amamba-jenkins-agent-maven-multi-platform-builder ;\
 	docker buildx build \
 			--builder amamba-jenkins-agent-maven-multi-platform-builder \
 			--platform $(BUILD_ARCH) \
-			--tag $(REGISTRY_REPO)/jenkins-agent/builder-maven:$(AMAMBA_IMAGE_VERSION)  \
-			--tag $(REGISTRY_REPO)/jenkins-agent/builder-maven:latest  \
+			--tag $(REGISTRY_REPO)/jenkins-agent-maven:$(AMAMBA_IMAGE_VERSION)  \
+			--tag $(REGISTRY_REPO)/jenkins-agent-maven:latest  \
 			-f ./jenkins-agent/maven/Dockerfile \
 			--build-arg REGISTRY_REPO="$(REGISTRY_REPO)" \
 			--push \
 			./jenkins-agent/maven
 
 .PHONY: build-jenkins-agent-maven-podman
-build-jenkins-agent-maven-podman: docker-login
+build-jenkins-agent-maven-podman:
 	export DOCKER_CLI_EXPERIMENTAL=enabled ;\
 	! ( docker buildx ls | grep amamba-jenkins-agent-maven-podman-multi-platform-builder ) && docker buildx create --use --platform=$(BUILD_ARCH) --name amamba-jenkins-agent-maven-podman-multi-platform-builder ;\
 	docker buildx build \
 			--builder amamba-jenkins-agent-maven-podman-multi-platform-builder \
 			--platform $(BUILD_ARCH) \
-			--tag $(REGISTRY_REPO)/jenkins-agent/builder-maven:$(AMAMBA_IMAGE_VERSION)-podman  \
-			--tag $(REGISTRY_REPO)/jenkins-agent/builder-maven:latest-podman  \
+			--tag $(REGISTRY_REPO)/jenkins-agent-maven:$(AMAMBA_IMAGE_VERSION)-podman  \
+			--tag $(REGISTRY_REPO)/jenkins-agent-maven:latest-podman  \
 			-f ./jenkins-agent/maven/Dockerfile \
 			--build-arg RUNTIME="-podman" \
 			--build-arg REGISTRY_REPO="$(REGISTRY_REPO)" \
@@ -152,14 +156,14 @@ build-jenkins-agent-maven-podman: docker-login
 build-jenkins-agent-nodejs-all: build-jenkins-agent-nodejs16 build-jenkins-agent-nodejs16-podman
 
 .PHONY: build-jenkins-agent-nodejs16
-build-jenkins-agent-nodejs16: docker-login
+build-jenkins-agent-nodejs16:
 	export DOCKER_CLI_EXPERIMENTAL=enabled ;\
 	! ( docker buildx ls | grep amamba-jenkins-agent-nodejs16-multi-platform-builder ) && docker buildx create --use --platform=$(BUILD_ARCH) --name amamba-jenkins-agent-nodejs16-multi-platform-builder ;\
 	docker buildx build \
 			--builder amamba-jenkins-agent-nodejs16-multi-platform-builder \
 			--platform $(BUILD_ARCH) \
-			--tag $(REGISTRY_REPO)/jenkins-agent/builder-nodejs:$(AMAMBA_IMAGE_VERSION)-v16.17.0  \
-			--tag $(REGISTRY_REPO)/jenkins-agent/builder-nodejs:latest-v16.17.0  \
+			--tag $(REGISTRY_REPO)/jenkins-agent-nodejs:$(AMAMBA_IMAGE_VERSION)-v16.17.0  \
+			--tag $(REGISTRY_REPO)/jenkins-agent-nodejs:latest-v16.17.0  \
 			-f ./jenkins-agent/nodejs/Dockerfile \
 			--build-arg VERSION=v16.17.0 \
 			--build-arg REGISTRY_REPO="$(REGISTRY_REPO)" \
@@ -167,47 +171,16 @@ build-jenkins-agent-nodejs16: docker-login
 			./jenkins-agent/nodejs
 
 .PHONY: build-jenkins-agent-nodejs16-podman
-build-jenkins-agent-nodejs16-podman: docker-login
+build-jenkins-agent-nodejs16-podman:
 	export DOCKER_CLI_EXPERIMENTAL=enabled ;\
 	! ( docker buildx ls | grep amamba-jenkins-agent-nodejs16-podman-multi-platform-builder ) && docker buildx create --use --platform=$(BUILD_ARCH) --name amamba-jenkins-agent-nodejs16-podman-multi-platform-builder ;\
 	docker buildx build \
 			--builder amamba-jenkins-agent-nodejs16-podman-multi-platform-builder \
 			--platform $(BUILD_ARCH) \
-			--tag $(REGISTRY_REPO)/jenkins-agent/builder-nodejs:$(AMAMBA_IMAGE_VERSION)-v16.17.0-podman  \
-			--tag $(REGISTRY_REPO)/jenkins-agent/builder-nodejs:latest-v16.17.0-podman  \
+			--tag $(REGISTRY_REPO)/jenkins-agent-nodejs:$(AMAMBA_IMAGE_VERSION)-v16.17.0-podman  \
+			--tag $(REGISTRY_REPO)/jenkins-agent-nodejs:latest-v16.17.0-podman  \
 			-f ./jenkins-agent/nodejs/Dockerfile \
 			--build-arg VERSION=v16.17.0 \
-			--build-arg RUNTIME="-podman" \
-			--build-arg REGISTRY_REPO="$(REGISTRY_REPO)" \
-			--push \
-			./jenkins-agent/nodejs
-
-.PHONY: build-jenkins-agent-nodejs18
-build-jenkins-agent-nodejs18: docker-login
-	export DOCKER_CLI_EXPERIMENTAL=enabled ;\
-	! ( docker buildx ls | grep amamba-jenkins-agent-nodejs18-multi-platform-builder ) && docker buildx create --use --platform=$(BUILD_ARCH) --name amamba-jenkins-agent-nodejs18-multi-platform-builder ;\
-	docker buildx build \
-			--builder amamba-jenkins-agent-nodejs18-multi-platform-builder \
-			--platform $(BUILD_ARCH) \
-			--tag $(REGISTRY_REPO)/jenkins-agent/builder-nodejs:$(AMAMBA_IMAGE_VERSION)-v18.12.0  \
-			--tag $(REGISTRY_REPO)/jenkins-agent/builder-nodejs:latest-v18.12.0  \
-			-f ./jenkins-agent/nodejs/Dockerfile \
-			--build-arg VERSION=v18.12.0 \
-			--build-arg REGISTRY_REPO="$(REGISTRY_REPO)" \
-			--push \
-			./jenkins-agent/nodejs
-
-.PHONY: build-jenkins-agent-nodejs18-podman
-build-jenkins-agent-nodejs18-podman: docker-login
-	export DOCKER_CLI_EXPERIMENTAL=enabled ;\
-	! ( docker buildx ls | grep amamba-jenkins-agent-nodejs18-podman-multi-platform-builder ) && docker buildx create --use --platform=$(BUILD_ARCH) --name amamba-jenkins-agent-nodejs18-podman-multi-platform-builder ;\
-	docker buildx build \
-			--builder amamba-jenkins-agent-nodejs18-podman-multi-platform-builder \
-			--platform $(BUILD_ARCH) \
-			--tag $(REGISTRY_REPO)/jenkins-agent/builder-nodejs:$(AMAMBA_IMAGE_VERSION)-v18.12.0-podman  \
-			--tag $(REGISTRY_REPO)/jenkins-agent/builder-nodejs:latest-v18.12.0-podman   \
-			-f ./jenkins-agent/nodejs/Dockerfile \
-			--build-arg VERSION=v18.12.0 \
 			--build-arg RUNTIME="-podman" \
 			--build-arg REGISTRY_REPO="$(REGISTRY_REPO)" \
 			--push \
@@ -217,28 +190,28 @@ build-jenkins-agent-nodejs18-podman: docker-login
 build-jenkins-agent-python-all: build-jenkins-agent-python build-jenkins-agent-python-podman
 
 .PHONY: build-jenkins-agent-python
-build-jenkins-agent-python: docker-login
+build-jenkins-agent-python:
 	export DOCKER_CLI_EXPERIMENTAL=enabled ;\
 	! ( docker buildx ls | grep amamba-jenkins-agent-python-multi-platform-builder ) && docker buildx create --use --platform=$(BUILD_ARCH) --name amamba-jenkins-agent-python-multi-platform-builder ;\
 	docker buildx build \
 			--builder amamba-jenkins-agent-python-multi-platform-builder \
 			--platform $(BUILD_ARCH) \
-			--tag $(REGISTRY_REPO)/jenkins-agent/builder-python:$(AMAMBA_IMAGE_VERSION)  \
-			--tag $(REGISTRY_REPO)/jenkins-agent/builder-python:latest  \
+			--tag $(REGISTRY_REPO)/jenkins-agent-python:$(AMAMBA_IMAGE_VERSION)  \
+			--tag $(REGISTRY_REPO)/jenkins-agent-python:latest  \
 			-f ./jenkins-agent/python/Dockerfile \
 			--build-arg REGISTRY_REPO="$(REGISTRY_REPO)" \
 			--push \
 			./jenkins-agent/python
 
 .PHONY: build-jenkins-agent-python-podman
-build-jenkins-agent-python-podman: docker-login
+build-jenkins-agent-python-podman:
 	export DOCKER_CLI_EXPERIMENTAL=enabled ;\
 	! ( docker buildx ls | grep amamba-jenkins-agent-python-podman-multi-platform-builder ) && docker buildx create --use --platform=$(BUILD_ARCH) --name amamba-jenkins-agent-python-podman-multi-platform-builder ;\
 	docker buildx build \
 			--builder amamba-jenkins-agent-python-podman-multi-platform-builder \
 			--platform $(BUILD_ARCH) \
-			--tag $(REGISTRY_REPO)/jenkins-agent/builder-python:$(AMAMBA_IMAGE_VERSION)-podman  \
-			--tag $(REGISTRY_REPO)/jenkins-agent/builder-python:latest-podman  \
+			--tag $(REGISTRY_REPO)/jenkins-agent-python:$(AMAMBA_IMAGE_VERSION)-podman  \
+			--tag $(REGISTRY_REPO)/jenkins-agent-python:latest-podman  \
 			-f ./jenkins-agent/python/Dockerfile \
 			--build-arg RUNTIME="-podman" \
 			--build-arg REGISTRY_REPO="$(REGISTRY_REPO)" \
@@ -258,10 +231,6 @@ sync-all-jenkins-agent-imgs:
 	echo ${REGISTRY_PASSWORD} | docker login ${REGISTRY_REPO} -u ${REGISTRY_USERNAME} --password-stdin && \
 	chmod +x ./hack/sync-imgs.sh && ./hack/sync-imgs.sh $(AMAMBA_IMAGE_VERSION) "./hack/imgs-manifest.list" "release.daocloud.io" "release-ci.daocloud.io"
 
-.PHONY: gen-release-notes
-gen-release-notes:
-	./hack/release-version.sh
-
 .PHNOY: build-helper
 build-helper: docker-login
 	export DOCKER_CLI_EXPERIMENTAL=enabled ;\
@@ -269,8 +238,8 @@ build-helper: docker-login
 	docker buildx build \
 		--builder amamba-jenkins-agent-build-helper-builder \
 		--platform linux/amd64 \
-		--tag $(REGISTRY_REPO)/jenkins-agent/build-helper:$(AMAMBA_IMAGE_VERSION) \
-		--tag $(REGISTRY_REPO)/jenkins-agent/build-helper:latest  \
+		--tag $(REGISTRY_REPO)/build-helper:$(AMAMBA_IMAGE_VERSION) \
+		--tag $(REGISTRY_REPO)/build-helper:latest  \
 		-f ./build/helper/Dockerfile \
         --push \
         ./build/helper
