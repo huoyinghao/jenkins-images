@@ -1,7 +1,7 @@
 ARG RUNTIME
 ARG REGISTRY_REPO
-FROM release-ci.daocloud.io/amamba/build-helper:v0.2.0 as build
-FROM $REGISTRY_REPO/amamba/jenkins-agent/builder-base:latest$RUNTIME
+FROM --platform=linux/amd64 $REGISTRY_REPO/build-helper:latest as build
+FROM $REGISTRY_REPO/jenkins-agent-base:latest$RUNTIME
 
 # java
 ENV JAVA_VERSIOIN 1.8.0

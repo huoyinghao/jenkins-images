@@ -1,5 +1,5 @@
 ARG REGISTRY_REPO
-FROM  $REGISTRY_REPO/amamba/jenkins-agent/builder-base:latest
+FROM  $REGISTRY_REPO/jenkins-agent-base:latest
 
 RUN rm -rf /usr/bin/docker
 # Install podman
