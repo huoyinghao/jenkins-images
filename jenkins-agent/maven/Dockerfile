@@ -15,7 +15,7 @@ ENV M2_HOME /opt/apache-maven-$MAVEN_VERSION
 ENV JAVA_HOME /usr/lib/jvm/java-${JAVA_VERSIOIN}-openjdk
 ENV maven.home $M2_HOME
 ENV M2 $M2_HOME/bin
-ENV PATH $M2:$PATH:JAVA_HOME/bin
+ENV PATH $M2:$PATH:$JAVA_HOME/bin
 
 # ant
 #ENV ANT_VERSION 1.10.7
@@ -23,6 +23,7 @@ ENV PATH $M2:$PATH:JAVA_HOME/bin
 #RUN mv apache-ant-${ANT_VERSION} /opt/ant
 #ENV ANT_HOME /opt/ant
 #ENV PATH ${PATH}:/opt/ant/bin
+RUN rm -rf /opt/java-11.0.14 /opt/sonar-scanner-4.8.0.2856 && yum clean all && rm -rf /var/cache/yum
 
 # Set JDK to be 32bit
 COPY set_java $M2

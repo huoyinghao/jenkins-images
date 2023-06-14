@@ -59,13 +59,14 @@ docker-login:
 	docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
 
 .PHONY: build-jenkins-agent-base-all
-build-jenkins-agent-base-all: build-jenkins-agent-base build-jenkins-agent-base-podman
+build-jenkins-agent-base-all: build-jenkins-agent-base-podman
 
 .PHONY: build-jenkins-agent-base
 build-jenkins-agent-base:
 	export DOCKER_CLI_EXPERIMENTAL=enabled ;\
+	export BUILDKIT_PROGRESS=plain ;\
 	! ( docker buildx ls | grep amamba-jenkins-agent-base-multi-platform-builder ) && docker buildx create --use --platform=$(BUILD_ARCH) --name amamba-jenkins-agent-base-multi-platform-builder ;\
-	docker buildx build \
+	docker buildx build --progress=plain \
 			--builder amamba-jenkins-agent-base-multi-platform-builder \
 			--platform $(BUILD_ARCH) \
 			--tag $(REGISTRY_REPO)/jenkins-agent-base:$(AMAMBA_IMAGE_VERSION)  \
@@ -75,10 +76,11 @@ build-jenkins-agent-base:
 			./jenkins-agent/base
 
 .PHONY: build-jenkins-agent-base-podman
-build-jenkins-agent-base-podman:
+build-jenkins-agent-base-podman: build-jenkins-agent-base
 	export DOCKER_CLI_EXPERIMENTAL=enabled ;\
+	export BUILDKIT_PROGRESS=plain ;\
 	! ( docker buildx ls | grep amamba-jenkins-agent-base-podman-multi-platform-builder ) && docker buildx create --use --platform=$(BUILD_ARCH) --name amamba-jenkins-agent-base-podman-multi-platform-builder ;\
-	docker buildx build \
+	docker buildx build --progress=plain \
 			--builder amamba-jenkins-agent-base-podman-multi-platform-builder \
 			--platform $(BUILD_ARCH) \
 			--tag $(REGISTRY_REPO)/jenkins-agent-base:$(AMAMBA_IMAGE_VERSION)-podman  \
@@ -165,7 +167,7 @@ build-jenkins-agent-nodejs16:
 			--tag $(REGISTRY_REPO)/jenkins-agent-nodejs:$(AMAMBA_IMAGE_VERSION)-v16.17.0  \
 			--tag $(REGISTRY_REPO)/jenkins-agent-nodejs:latest-v16.17.0  \
 			-f ./jenkins-agent/nodejs/Dockerfile \
-			--build-arg VERSION=v16.17.0 \
+			--build-arg VERSION=16.17.0 \
 			--build-arg REGISTRY_REPO="$(REGISTRY_REPO)" \
 			--push \
 			./jenkins-agent/nodejs
@@ -180,7 +182,7 @@ build-jenkins-agent-nodejs16-podman:
 			--tag $(REGISTRY_REPO)/jenkins-agent-nodejs:$(AMAMBA_IMAGE_VERSION)-v16.17.0-podman  \
 			--tag $(REGISTRY_REPO)/jenkins-agent-nodejs:latest-v16.17.0-podman  \
 			-f ./jenkins-agent/nodejs/Dockerfile \
-			--build-arg VERSION=v16.17.0 \
+			--build-arg VERSION=16.17.0 \
 			--build-arg RUNTIME="-podman" \
 			--build-arg REGISTRY_REPO="$(REGISTRY_REPO)" \
 			--push \
@@ -219,7 +221,7 @@ build-jenkins-agent-python-podman:
 			./jenkins-agent/python
 
 .PHONY: build-jenkins-agent-all
-build-jenkins-agent-all: build-jenkins-agent-base build-jenkins-agent-base-podman
+build-jenkins-agent-all: build-jenkins-agent-base-podman
 	make build-jenkins-agent-extend -j4
 
 .PHONY: build-jenkins-agent-extend
