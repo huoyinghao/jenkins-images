@@ -1,155 +1,383 @@
 name: Build Images
 on:
   pull_request_target:
+env:
+  ONLINE_REGISTER: ghcr.io
+  BUILD_PLATFORM: linux/amd64,linux/arm64
 jobs:
-  build:
+  init-variable:
     runs-on: ubuntu-latest
-    env:
-      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
-      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    outputs:
+      container_tag: ${{ steps.init_variable.outputs.container_tag }}
     steps:
       - name: checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
+      - name: output environment variable
+        id: init_variable
+        run: |
+          echo container_tag=$(git describe --tags --abbrev=8) >> $GITHUB_OUTPUT
+
+  build-jenkins:
+    permissions:
+      contents: read
+      packages: write
+    needs: init-variable
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          fetch-depth: 0
       - name: use-setup-buildx-action
         uses: docker/setup-buildx-action@v2
+      - name: login
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: build jenkins
-        run: make build-jenkins-all
-  build-helper:
+        uses: docker/build-push-action@v4.1.1
+        with:
+          context: ./
+          file: ./Dockerfile
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          push: true
+          provenance: false
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/jenkins:${{ needs.init-variable.outputs.container_tag }}
+            ghcr.io/${{ github.repository_owner }}/jenkins:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-jenkins-agent-base:
+    permissions:
+      contents: read
+      packages: write
+    needs: init-variable
     runs-on: ubuntu-latest
-    env:
-      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
-      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
       - name: checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Login to Docker Hub
+      - name: Login to ghcr.io
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: use-setup-buildx-action
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: use setup-buildx-action
         uses: docker/setup-buildx-action@v2
-      - name: build helper
-        run: make build-helper
-  build-agent-base:
+      - name: build jenkins agent with docker
+        uses: docker/build-push-action@v4.1.1
+        with:
+          context: ./jenkins-agent/base
+          file: ./jenkins-agent/base/Dockerfile
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          push: true
+          provenance: false
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/jenkins-agent-base:${{ needs.init-variable.outputs.container_tag }}
+            ghcr.io/${{ github.repository_owner }}/jenkins-agent-base:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+  build-jenkins-agent-base-podman:
+    permissions:
+      contents: read
+      packages: write
+    needs: [init-variable,build-jenkins-agent-base]
     runs-on: ubuntu-latest
-    env:
-      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
-      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
       - name: checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Login to Docker Hub
+      - name: Login to ghcr.io
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: use-setup-buildx-action
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: use setup-buildx-action
         uses: docker/setup-buildx-action@v2
-      - name: build jenkins agent base
-        run: make build-jenkins-agent-base-all
+      - name: build jenkins agent with podman
+        uses: docker/build-push-action@v4.1.1
+        with:
+          context: ./jenkins-agent/base
+          file: ./jenkins-agent/base/podman/Dockerfile
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          push: true
+          provenance: false
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/jenkins-agent-base:${{ needs.init-variable.outputs.container_tag }}-podman
+            ghcr.io/${{ github.repository_owner }}/jenkins-agent-base:latest-podman
+          build-args: |
+            REGISTRY_REPO=ghcr.io/${{ github.repository }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
   build-agent-go:
-    needs: [build-agent-base, build-helper]
+    needs: [build-jenkins-agent-base]
     runs-on: ubuntu-latest
-    env:
-      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
-      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
       - name: checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Login to Docker Hub
+      - name: Login to ghcr.io
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: use-setup-buildx-action
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: use setup-buildx-action
         uses: docker/setup-buildx-action@v2
-      - name: build jenkins agent extend
-        run: make build-jenkins-agent-go-all
+      - name: build jenkins agent with podman
+        uses: docker/build-push-action@v4.1.1
+        with:
+          context: ./jenkins-agent/go
+          file: ./jenkins-agent/go/Dockerfile
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          push: true
+          provenance: false
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/jenkins-agent-go:${{ needs.init-variable.outputs.container_tag }}
+            ghcr.io/${{ github.repository_owner }}/jenkins-agent-go:latest
+          build-args: |
+            REGISTRY_REPO=ghcr.io/${{ github.repository }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+  build-agent-go-podman:
+    needs: [ build-jenkins-agent-base-podman ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Login to ghcr.io
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: use setup-buildx-action
+        uses: docker/setup-buildx-action@v2
+      - name: build jenkins agent with podman
+        uses: docker/build-push-action@v4.1.1
+        with:
+          context: ./jenkins-agent/go
+          file: ./jenkins-agent/go/Dockerfile
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          push: true
+          provenance: false
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/jenkins-agent-go:${{ needs.init-variable.outputs.container_tag }}-podman
+            ghcr.io/${{ github.repository_owner }}/jenkins-agent-go:latest-podman
+          build-args: |
+            REGISTRY_REPO=ghcr.io/${{ github.repository }}
+            RUNTIME=-podman
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
   build-agent-maven:
-    needs: [ build-agent-base, build-helper ]
+    needs: [ build-jenkins-agent-base ]
     runs-on: ubuntu-latest
-    env:
-      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
-      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
       - name: checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Login to Docker Hub
+      - name: Login to ghcr.io
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: use-setup-buildx-action
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: use setup-buildx-action
         uses: docker/setup-buildx-action@v2
-      - name: build jenkins agent extend
-        run: make build-jenkins-agent-maven-all
+      - name: build jenkins agent with podman
+        uses: docker/build-push-action@v4.1.1
+        with:
+          context: ./jenkins-agent/maven
+          file: ./jenkins-agent/maven/Dockerfile
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          push: true
+          provenance: false
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/jenkins-agent-maven:${{ needs.init-variable.outputs.container_tag }}
+            ghcr.io/${{ github.repository_owner }}/jenkins-agent-maven:latest
+          build-args: |
+            REGISTRY_REPO=ghcr.io/${{ github.repository }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+  build-agent-maven-podman:
+    needs: [ build-jenkins-agent-base-podman ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Login to ghcr.io
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: use setup-buildx-action
+        uses: docker/setup-buildx-action@v2
+      - name: build jenkins agent with podman
+        uses: docker/build-push-action@v4.1.1
+        with:
+          context: ./jenkins-agent/go
+          file: ./jenkins-agent/go/Dockerfile
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          push: true
+          provenance: false
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/jenkins-agent-maven:${{ needs.init-variable.outputs.container_tag }}-podman
+            ghcr.io/${{ github.repository_owner }}/jenkins-agent-maven:latest-podman
+          build-args: |
+            REGISTRY_REPO=ghcr.io/${{ github.repository }}
+            RUNTIME=-podman
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
   build-agent-nodejs:
-    needs: [ build-agent-base, build-helper ]
+    needs: [ build-jenkins-agent-base ]
     runs-on: ubuntu-latest
-    env:
-      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
-      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
       - name: checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Login to Docker Hub
+      - name: Login to ghcr.io
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: use-setup-buildx-action
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: use setup-buildx-action
         uses: docker/setup-buildx-action@v2
-      - name: build jenkins agent extend
-        run: make build-jenkins-agent-nodejs-all
+      - name: build jenkins agent with podman
+        uses: docker/build-push-action@v4.1.1
+        with:
+          context: ./jenkins-agent/nodejs
+          file: ./jenkins-agent/nodejs/Dockerfile
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          push: true
+          provenance: false
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/jenkins-agent-nodejs:${{ needs.init-variable.outputs.container_tag }}
+            ghcr.io/${{ github.repository_owner }}/jenkins-agent-nodejs:latest
+          build-args: |
+            REGISTRY_REPO=ghcr.io/${{ github.repository }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+  build-agent-nodejs-podman:
+    needs: [ build-jenkins-agent-base ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Login to ghcr.io
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: use setup-buildx-action
+        uses: docker/setup-buildx-action@v2
+      - name: build jenkins agent with podman
+        uses: docker/build-push-action@v4.1.1
+        with:
+          context: ./jenkins-agent/nodejs
+          file: ./jenkins-agent/nodejs/Dockerfile
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          push: true
+          provenance: false
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/jenkins-agent-nodejs:${{ needs.init-variable.outputs.container_tag }}-podman
+            ghcr.io/${{ github.repository_owner }}/jenkins-agent-nodejs:latest-podman
+          build-args: |
+            REGISTRY_REPO=ghcr.io/${{ github.repository }}
+            RUNTIME=-podman
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
   build-agent-python:
     needs: [ build-agent-base, build-helper ]
     runs-on: ubuntu-latest
-    env:
-      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
-      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
       - name: checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Login to Docker Hub
+      - name: Login to ghcr.io
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: use-setup-buildx-action
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: use setup-buildx-action
         uses: docker/setup-buildx-action@v2
-      - name: build jenkins agent extend
-        run: make build-jenkins-agent-python-all
+      - name: build jenkins agent with podman
+        uses: docker/build-push-action@v4.1.1
+        with:
+          context: ./jenkins-agent/python
+          file: ./jenkins-agent/python/Dockerfile
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          push: true
+          provenance: false
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/jenkins-agent-python:${{ needs.init-variable.outputs.container_tag }}
+            ghcr.io/${{ github.repository_owner }}/jenkins-agent-python:latest
+          build-args: |
+            REGISTRY_REPO=ghcr.io/${{ github.repository }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+  build-agent-python-podman:
+    needs: [ build-agent-base, build-helper ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Login to ghcr.io
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: use setup-buildx-action
+        uses: docker/setup-buildx-action@v2
+      - name: build jenkins agent with podman
+        uses: docker/build-push-action@v4.1.1
+        with:
+          context: ./jenkins-agent/python
+          file: ./jenkins-agent/python/Dockerfile
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          push: true
+          provenance: false
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/jenkins-agent-python:${{ needs.init-variable.outputs.container_tag }}-podman
+            ghcr.io/${{ github.repository_owner }}/jenkins-agent-python:latest-podman
+          build-args: |
+            REGISTRY_REPO=ghcr.io/${{ github.repository }}
+            RUNTIME=-podman
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
