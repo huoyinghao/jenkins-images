@@ -118,7 +118,7 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/jenkins-agent-base:${{ needs.init-variable.outputs.container_tag }}-podman
             ghcr.io/${{ github.repository_owner }}/jenkins-agent-base:latest-podman
           build-args: |
-            REGISTRY_REPO=ghcr.io/${{ github.repository }}
+            REGISTRY_REPO=ghcr.io/${{ github.repository_owner }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
   build-agent-go:
@@ -150,7 +150,7 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/jenkins-agent-go:${{ needs.init-variable.outputs.container_tag }}
             ghcr.io/${{ github.repository_owner }}/jenkins-agent-go:latest
           build-args: |
-            REGISTRY_REPO=ghcr.io/${{ github.repository }}
+            REGISTRY_REPO=ghcr.io/${{ github.repository_owner }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
   build-agent-go-podman:
@@ -182,7 +182,7 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/jenkins-agent-go:${{ needs.init-variable.outputs.container_tag }}-podman
             ghcr.io/${{ github.repository_owner }}/jenkins-agent-go:latest-podman
           build-args: |
-            REGISTRY_REPO=ghcr.io/${{ github.repository }}
+            REGISTRY_REPO=ghcr.io/${{ github.repository_owner }}
             RUNTIME=-podman
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -215,7 +215,7 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/jenkins-agent-maven:${{ needs.init-variable.outputs.container_tag }}
             ghcr.io/${{ github.repository_owner }}/jenkins-agent-maven:latest
           build-args: |
-            REGISTRY_REPO=ghcr.io/${{ github.repository }}
+            REGISTRY_REPO=ghcr.io/${{ github.repository_owner }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
   build-agent-maven-podman:
@@ -247,7 +247,7 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/jenkins-agent-maven:${{ needs.init-variable.outputs.container_tag }}-podman
             ghcr.io/${{ github.repository_owner }}/jenkins-agent-maven:latest-podman
           build-args: |
-            REGISTRY_REPO=ghcr.io/${{ github.repository }}
+            REGISTRY_REPO=ghcr.io/${{ github.repository_owner }}
             RUNTIME=-podman
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -280,7 +280,7 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/jenkins-agent-nodejs:${{ needs.init-variable.outputs.container_tag }}
             ghcr.io/${{ github.repository_owner }}/jenkins-agent-nodejs:latest
           build-args: |
-            REGISTRY_REPO=ghcr.io/${{ github.repository }}
+            REGISTRY_REPO=ghcr.io/${{ github.repository_owner }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
   build-agent-nodejs-podman:
@@ -312,7 +312,7 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/jenkins-agent-nodejs:${{ needs.init-variable.outputs.container_tag }}-podman
             ghcr.io/${{ github.repository_owner }}/jenkins-agent-nodejs:latest-podman
           build-args: |
-            REGISTRY_REPO=ghcr.io/${{ github.repository }}
+            REGISTRY_REPO=ghcr.io/${{ github.repository_owner }}
             RUNTIME=-podman
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -345,7 +345,7 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/jenkins-agent-python:${{ needs.init-variable.outputs.container_tag }}
             ghcr.io/${{ github.repository_owner }}/jenkins-agent-python:latest
           build-args: |
-            REGISTRY_REPO=ghcr.io/${{ github.repository }}
+            REGISTRY_REPO=ghcr.io/${{ github.repository_owner }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
   build-agent-python-podman:
@@ -377,7 +377,7 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/jenkins-agent-python:${{ needs.init-variable.outputs.container_tag }}-podman
             ghcr.io/${{ github.repository_owner }}/jenkins-agent-python:latest-podman
           build-args: |
-            REGISTRY_REPO=ghcr.io/${{ github.repository }}
+            REGISTRY_REPO=ghcr.io/${{ github.repository_owner }}
             RUNTIME=-podman
           cache-from: type=gha
           cache-to: type=gha,mode=max
