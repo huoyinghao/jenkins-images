@@ -122,7 +122,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
   build-agent-go:
-    needs: [build-jenkins-agent-base]
+    needs: [build-jenkins-agent-base, init-variable]
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -154,7 +154,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
   build-agent-go-podman:
-    needs: [ build-jenkins-agent-base-podman ]
+    needs: [ build-jenkins-agent-base-podman, init-variable ]
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -187,7 +187,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
   build-agent-maven:
-    needs: [ build-jenkins-agent-base ]
+    needs: [ build-jenkins-agent-base, init-variable ]
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -219,7 +219,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
   build-agent-maven-podman:
-    needs: [ build-jenkins-agent-base-podman ]
+    needs: [ build-jenkins-agent-base-podman, init-variable ]
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -252,7 +252,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
   build-agent-nodejs:
-    needs: [ build-jenkins-agent-base ]
+    needs: [ build-jenkins-agent-base, init-variable ]
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -284,7 +284,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
   build-agent-nodejs-podman:
-    needs: [ build-jenkins-agent-base-podman ]
+    needs: [ build-jenkins-agent-base-podman, init-variable ]
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -317,7 +317,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
   build-agent-python:
-    needs: [ build-jenkins-agent-base ]
+    needs: [ build-jenkins-agent-base, init-variable ]
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -349,7 +349,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
   build-agent-python-podman:
-    needs: [ build-jenkins-agent-base-podman ]
+    needs: [ build-jenkins-agent-base-podman, init-variable ]
     runs-on: ubuntu-latest
     steps:
       - name: checkout
