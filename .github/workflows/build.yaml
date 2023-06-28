@@ -284,7 +284,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
   build-agent-nodejs-podman:
-    needs: [ build-jenkins-agent-base ]
+    needs: [ build-jenkins-agent-base-podman ]
     runs-on: ubuntu-latest
     steps:
       - name: checkout
