@@ -317,7 +317,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
   build-agent-python:
-    needs: [ build-agent-base, build-helper ]
+    needs: [ build-jenkins-agent-base ]
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -349,7 +349,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
   build-agent-python-podman:
-    needs: [ build-agent-base, build-helper ]
+    needs: [ build-jenkins-agent-base-podman ]
     runs-on: ubuntu-latest
     steps:
       - name: checkout
