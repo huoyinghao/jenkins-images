@@ -281,6 +281,7 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/jenkins-agent-nodejs:latest
           build-args: |
             REGISTRY_REPO=ghcr.io/${{ github.repository_owner }}
+            VERSION=16.17.0
           cache-from: type=gha
           cache-to: type=gha,mode=max
   build-agent-nodejs-podman:
@@ -314,6 +315,7 @@ jobs:
           build-args: |
             REGISTRY_REPO=ghcr.io/${{ github.repository_owner }}
             RUNTIME=-podman
+            VERSION=16.17.0
           cache-from: type=gha
           cache-to: type=gha,mode=max
   build-agent-python:
