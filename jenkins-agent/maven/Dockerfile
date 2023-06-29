@@ -9,7 +9,7 @@ RUN yum install -y java-${JAVA_VERSIOIN}-openjdk-devel \
 
 # maven
 ENV MAVEN_VERSION 3.5.3
-RUN cd /opt && wget https://archive.apache.org/dist/maven/maven-3/3.5.3/binaries/apache-maven-3.5.3.tar.gz && tar -xvf apache-maven-3.5.3.tar.gz && rm -rf apache-maven-3.5.3.tar.gz
+RUN cd /opt && wget https://archive.apache.org/dist/maven/maven-3/3.5.3/binaries/apache-maven-3.5.3-bin.tar.gz && tar -xvf apache-maven-3.5.3-bin.tar.gz && rm -rf apache-maven-3.5.3-bin.tar.gz
 ENV M2_HOME /opt/apache-maven-$MAVEN_VERSION
 ENV JAVA_HOME /usr/lib/jvm/java-${JAVA_VERSIOIN}-openjdk
 ENV maven.home $M2_HOME
