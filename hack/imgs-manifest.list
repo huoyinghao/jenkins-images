@@ -1,5 +1,0 @@
-builder-base:#TAG
-builder-go:#TAG
-builder-nodejs:#TAG-v16.17.0
-builder-maven:#TAG
-builder-python:#TAG
