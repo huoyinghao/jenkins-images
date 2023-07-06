@@ -1,9 +1,6 @@
 name: Build Images
 on:
   pull_request_target:
-env:
-  ONLINE_REGISTER: ghcr.io
-  BUILD_PLATFORM: linux/amd64,linux/arm64
 jobs:
   init-variable:
     runs-on: ubuntu-latest

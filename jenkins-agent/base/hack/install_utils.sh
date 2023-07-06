@@ -27,27 +27,16 @@ if [[ ${EXCLUDE_DOCKER} != '1' ]]; then
 fi
 
 # Helm
-HELM_VERSION=2.11.0
-HELM3_VERSION=3.5.0
+HELM3_VERSION=3.12.1
 JAVA_VERSION=11.0.14.9.1
 if [[ ${ARCH} == 'x86_64' ]]; then
-  curl -f https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz  | tar xzv && \
-  mv linux-amd64/helm /usr/bin/ && \
-  mv linux-amd64/tiller /usr/bin/ && \
-  rm -rf linux-amd64
-
   curl -f https://get.helm.sh/helm-v${HELM3_VERSION}-linux-amd64.tar.gz | tar xzv && \
-  mv linux-amd64/helm /usr/bin/helm3 && \
+  mv linux-amd64/helm /usr/bin/helm && \
   rm -rf linux-amd64
 elif [[ ${ARCH} == 'aarch64' ]]
 then
-  curl -f https://get.helm.sh/helm-v${HELM_VERSION}-linux-arm64.tar.gz  | tar xzv && \
-  mv linux-arm64/helm /usr/bin/ && \
-  mv linux-arm64/tiller /usr/bin/ && \
-  rm -rf linux-arm64
-
   curl -f https://get.helm.sh/helm-v${HELM3_VERSION}-linux-arm64.tar.gz | tar xzv && \
-  mv linux-arm64/helm /usr/bin/helm3 && \
+  mv linux-arm64/helm /usr/bin/helm && \
   rm -rf linux-arm64
 else
   echo "do not support this arch"
