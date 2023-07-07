@@ -173,7 +173,7 @@ plugins:
   - groupId: org.jenkins-ci.plugins
     artifactId: branch-api
     source:
-      version: 2.1046.v0ca_37783ecc5
+      version: 2.1071.v1a_188a_562481
   - groupId: org.jenkins-ci.plugins
     artifactId: display-url-api
     source:
@@ -293,7 +293,7 @@ plugins:
   - groupId: org.jenkins-ci.plugins
     artifactId: cloudbees-folder
     source:
-      version: 6.740.ve4f4ffa_dea_54
+      version: 6.758.vfd75d09eea_a_1
   - groupId: org.jenkins-ci.plugins
     artifactId: config-file-provider
     source:
@@ -309,7 +309,7 @@ plugins:
   - groupId: org.jenkins-ci.plugins
     artifactId: credentials
     source:
-      version: 1143.vb_e8b_b_ceee347
+      version: 1189.vf61b_a_5e2f62e
   - groupId: org.jenkins-ci.plugins
     artifactId: credentials-binding
     source:
@@ -537,7 +537,7 @@ plugins:
   - groupId: org.jenkins-ci.plugins.workflow
     artifactId: workflow-cps
     source:
-      version: 2803.v1a_f77ffcc773
+      version: 3659.v582dc37621d8
   - groupId: org.jenkins-ci.plugins.workflow
     artifactId: workflow-cps-global-lib
     source:
@@ -577,7 +577,7 @@ plugins:
   - groupId: org.jenkins-ci.plugins.workflow
     artifactId: workflow-multibranch
     source:
-      version: 716.vc692a_e52371b_
+      version: 746.v05814d19c001
   - groupId: org.jenkins-ci.plugins
     artifactId: label-linked-jobs
     source:
