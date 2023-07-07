@@ -125,7 +125,7 @@ plugins:
   - groupId: io.jenkins.plugins
     artifactId: jaxb
     source:
-      version: 2.3.7-1
+      version: 2.3.8-1
   - groupId: io.jenkins.blueocean
     artifactId: jenkins-design-language
     source:
@@ -177,7 +177,7 @@ plugins:
   - groupId: org.jenkins-ci.plugins
     artifactId: display-url-api
     source:
-      version: 2.3.6
+      version: 2.3.7
   - groupId: io.jenkins.plugins
     artifactId: font-awesome-api
     source:
@@ -409,7 +409,7 @@ plugins:
   - groupId: org.jenkins-ci.plugins
     artifactId: scm-api
     source:
-      version: 631.v9143df5b_e4a_a
+      version: 672.v64378a_b_20c60
   - groupId: org.jenkins-ci.ui
     artifactId: momentjs
     source:
@@ -441,7 +441,7 @@ plugins:
   - groupId: org.jenkins-ci.plugins
     artifactId: mailer
     source:
-      version: 435.438.v5b_81173f5b_a_1
+      version: 457.v3f72cb_e015e5
   - groupId: org.jenkins-ci.plugins
     artifactId: matrix-project
     source:
@@ -597,7 +597,7 @@ plugins:
   - groupId: io.jenkins.plugins
     artifactId: javax-activation-api
     source:
-      version: 1.2.0-5
+      version: 1.2.0-6
   - groupId: io.jenkins.plugins
     artifactId: bootstrap5-api
     source:
