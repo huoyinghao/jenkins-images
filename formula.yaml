@@ -109,7 +109,7 @@ plugins:
   - groupId: io.jenkins.plugins
     artifactId: checks-api
     source:
-      version: 1.7.5
+      version: 1.8.1
   - groupId: io.jenkins.plugins
     artifactId: gitlab-api
     source:
@@ -321,7 +321,7 @@ plugins:
   - groupId: io.jenkins.plugins
     artifactId: echarts-api
     source:
-      version: 5.3.3-1
+      version: 5.4.0-1
   - groupId: org.jvnet.hudson.plugins
     artifactId: favorite
     source:
@@ -622,6 +622,10 @@ plugins:
     artifactId: ionicons-api
     source:
       version: 56.v1b_1c8c49374e
+  - groupId: io.jenkins.plugins
+    artifactId: caffeine-api
+    source:
+      version: 3.1.6-115.vb_8b_b_328e59d8
 systemProperties:
   { hudson.security.csrf.DefaultCrumbIssuer.EXCLUDE_SESSION_ID: "true" }
 groovyHooks:
