@@ -385,7 +385,7 @@ plugins:
   - groupId: org.jenkins-ci.plugins
     artifactId: junit
     source:
-      version: 1189.v1b_e593637fa_e
+      version: 1198.ve38db_d1b_c975
   - groupId: org.jenkins-ci.plugins
     artifactId: kubernetes-client-api
     source:
