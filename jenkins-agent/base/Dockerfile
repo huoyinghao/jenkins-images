@@ -4,7 +4,7 @@ FROM centos:7
 RUN yum install -y epel-release ca-certificates && \
     yum install -y make wget git gcc gcc-c++ curl-devel autoconf openssl-devel && \
     yum -y clean all --enablerepo='*' && \
-    yum update
+    yum update -y
 
 # make Used to compile binary
 # wget Compressed package for downloading related components
