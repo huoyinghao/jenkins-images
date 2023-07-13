@@ -345,7 +345,7 @@ plugins:
   - groupId: org.jenkins-ci.plugins
     artifactId: jackson2-api
     source:
-      version: 2.15.1-344.v6eb_55303dc3e
+      version: 2.15.2-350.v0c2f3f8fc595
   - groupId: org.jenkins-ci.plugins
     artifactId: javadoc
     source:
@@ -401,7 +401,7 @@ plugins:
   - groupId: org.jenkins-ci.plugins
     artifactId: metrics
     source:
-      version: 4.2.13-420.vea_2f17932dd6
+      version: 4.2.18-439.v86a_20b_a_8318b_
   - groupId: org.jenkins-ci.plugins
     artifactId: scm-api
     source:
